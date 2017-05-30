@@ -12,19 +12,11 @@
 	var base64 = require('base-64');					// decode saml tokens for RAW_SAML
 	
 	
-	
-	
 	// SSL Configuration
 	// --------------------------------------------------------------------------------------------------------------------------  Specify certificates here
-	
-	// SSL-communications Configuration
-	// this needs to be unenctrypted private key (rsa key)
-	var sslkey = fs.readFileSync('certificates\\SSL\\commkey.key');
-	var sslcert = fs.readFileSync('certificates\\SSL\\commcert.crt');
-	
 	var ssloptions = {
-		key: sslkey,
-		cert: sslcert,
+		key:  fs.readFileSync('certificates\\SSL\\commkey.key'),	// this needs to be unencrypted private key (rsa key)
+		cert: fs.readFileSync('certificates\\SSL\\commcert.crt'),
 		ciphers: [
 			"ECDHE-RSA-AES256-SHA384",
 			"DHE-RSA-AES256-SHA384",
@@ -46,48 +38,13 @@
 		honorCipherOrder: true
 	};
 	
-	// SP Configuration
-	var sp_private = fs.readFileSync("certificates\\localSP\\sp.key").toString(); // this needs to be KEY or the assertion can't be decrypted properly (.PEM does not work)
-	var sp_public = fs.readFileSync("certificates\\localSP\\sp.crt").toString();
-	
-	//IDP configuration
-	// these certificates need to be of the '.cer' or '.pem' type
-	
-	//Jorenlab
-	var idp_enc_cert = fs.readFileSync("certificates\\remoteIDP\\jorenlab_enc.cer").toString();
-	var idp_sign_cert = fs.readFileSync("certificates\\remoteIDP\\jorenlab_sign.cer").toString();
-	//*/
-	
-	
-	
-	
-	// APP configuration
-    app.set('view engine','jade')									// specify jade as view engine
-	app.set('views', __dirname+'/views')										// views are in root dir
-	app.use(express.static(__dirname + '/public'));                 // set the static files location /public/img will be /img for users
-    app.use(morgan('dev'));                                         // log every request to the console
-    app.use(bodyParser.urlencoded({'extended':'true'}));            // parse application/x-www-form-urlencoded
-    app.use(bodyParser.json());                                     // parse application/json
-    app.use(bodyParser.json({ type: 'application/vnd.api+json' })); // parse application/vnd.api+json as json
-    app.use(methodOverride());
-	// this is for "Access-Control-Allow-Origin"
-	/*app.use(function(req, res, next) {
-		res.header('Access-Control-Allow-Origin', "*");
-		res.header('Access-Control-Allow-Methods','GET,PUT,POST,DELETE');
-		res.header('Access-Control-Allow-Headers', 'Content-Type');
-		next();
-	})*/
-
-	
-	
-	
 	
 	// Service provider
 	// --------------------------------------------------------------------------------------------------------------------------  Specify SP options here
 	var sp_options = {
 		entity_id: "https://sp.jorenhost.net/jorenSPidentifier",
-		private_key: sp_private,  
-		certificate: sp_public,
+		private_key: fs.readFileSync("certificates\\localSP\\sp.key").toString(), // this needs to be unencrypted private key (rsa key)
+		certificate: fs.readFileSync("certificates\\localSP\\sp.crt").toString(),
 		assert_endpoint: "https://sp.jorenhost.net/assert",
 		logout_endpoint: "https://sp.jorenhost.net/assertlogout",
 		force_authn: false,
@@ -97,31 +54,54 @@
 		allow_unencrypted_assertion: true
 	}	
  
-	  // Call service provider constructor with options 
+	  // Create ServiceProvider
 	  var sp = new saml2.ServiceProvider(sp_options);
-	 
-	  // Example use of service provider. 
-	  // Call metadata to get XML metatadata used in configuration. 
+
+	  // Generate XML metadata for IDP to access. (Allow your app in firewall)
 	  var spmetadata = sp.create_metadata();
 	
 	
 	// IdentityProvider
 	// --------------------------------------------------------------------------------------------------------------------------  Specify IDP options here
 	var idp_options = {
-	  //This is JorenLAB
 	  sso_login_url: "https://adfs16.fim.local/adfs/ls/trust",
 	  sso_logout_url: "https://adfs16.fim.local/adfs/ls/trust",
-	  certificates: [idp_enc_cert,idp_sign_cert]
-	  //*/
+	  // these certificates need to be of the '.cer' or '.pem' type
+	  certificates: [
+	  	fs.readFileSync("certificates\\remoteIDP\\jorenlab_enc.cer").toString(),		//encryption
+		fs.readFileSync("certificates\\remoteIDP\\jorenlab_sign.cer").toString()		//signing
+	  ]
 	};
 	
+	//"Create" IdentityProvider
 	var idp = new saml2.IdentityProvider(idp_options);
 
+		
+	/* ===========================================================================================================================================================================
+	 * ***************************************************************************************************************************************************************************
+	 * ===========================================================================================================================================================================
+	 *
+	 *													DON'T CHANGE ANYTHING BELOW THIS LINE IF YOU DON'T KNOW WHAT YOU'RE DOING
+	 *
+	 * ===========================================================================================================================================================================
+	 * ***************************************************************************************************************************************************************************
+	 * ===========================================================================================================================================================================
+	 */
+	
+	// APP configuration (probably nothing to change here)
+	
+    app.set('view engine','jade')									// specify jade as view engine
+	app.set('views', __dirname+'/views')										// views are in root dir
+	app.use(express.static(__dirname + '/public'));                 // set the static files location /public/img will be /img for users
+    app.use(morgan('dev'));                                         // log every request to the console
+    app.use(bodyParser.urlencoded({'extended':'true'}));            // parse application/x-www-form-urlencoded
+    app.use(bodyParser.json());                                     // parse application/json
+    app.use(bodyParser.json({ type: 'application/vnd.api+json' })); // parse application/vnd.api+json as json
+    app.use(methodOverride());
 	
 	
-	
-	// Site endpoints
-	// --------------------------------------------------------------------------------------------------------------------------  Specify site endpoints here
+	// Site endpoints (probably nothing to change here)
+	// --------------------------------------------------------------------------------------------------------------------------  ENDPOINTS
 	
 	// Endpoint to retrieve metadata 
 	app.get("/metadata.xml", function(req, res) {
@@ -216,8 +196,7 @@
 	  });
 	});
 
-	
-	
+		
 	
 	//start app with 'node server.js'
 	httpsServer = https.createServer(ssloptions,app).listen(443);
