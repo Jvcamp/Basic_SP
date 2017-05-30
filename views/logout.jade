@@ -1,0 +1,25 @@
+doctype html
+html(lang="en")
+	head
+		title=Assert
+		link(href='/css/standard.css',rel='stylesheet')
+		script(src='/js/assert_javascript.js')
+	body
+		#navbar
+			ul.nav
+				li.nav
+					a.button(href="https://sp.jorenhost.net/home") Home
+					a.button(href="https://sp.jorenhost.net/login") Login
+					a.button(href="https://sp.jorenhost.net/logout") Logout
+					a.button(href="https://sp.jorenhost.net/metadata.xml") SP metadata
+		#sitecontent
+			h2 Logout Page
+			p  
+				span Logout:  
+				span.bold #{state}!
+			br
+			#rawsaml
+				h3 Raw SAML
+				button(id='toggle_raw_saml' onclick='toggle()') Expand
+				br
+				textarea(id="raw_saml" rows="40" cols="200" style="display:none") #{raw_saml}

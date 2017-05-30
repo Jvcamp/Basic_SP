@@ -1,0 +1,47 @@
+doctype html
+html(lang="en")
+	head
+		title=Assert
+		link(href='/css/standard.css',rel='stylesheet')
+		script(src='/js/assert_javascript.js')
+	body
+		#navbar
+			ul.nav
+				li.nav
+					a.button(href="https://sp.jorenhost.net/home") Home
+					a.button(href="https://sp.jorenhost.net/login") Login
+					a.button(href="https://sp.jorenhost.net/logout") Logout
+					a.button(href="https://sp.jorenhost.net/metadata.xml") SP metadata
+		#sitecontent
+			h2 SAML Assertion data page
+			h3 Attributes
+			#mainattributes
+				table
+					thead
+					tbody
+						tr
+							td(class=bold) name id:
+							td 
+								span.bold #{name_id}
+			br
+			#attributetable
+				table
+					thead
+						th Attributes
+						th Value
+					tbody
+					-for(var item in attributes){
+						tr
+							td #{item}
+							td #{attributes[item]}
+					-}
+				#note.smalltext
+					p "http://schemas.XXXX.XXX/ws/XXXX/XX/identity/claims" prefix is omitted from attribute names.
+					p Backslash characters ' \ ' are replaced by pipes ' | '.
+				br
+				br
+			#rawsaml
+				h3 Raw SAML
+				button(id='toggle_raw_saml' onclick='toggle()') Expand
+				br
+				textarea(id="raw_saml" rows="40" cols="200" style="display:none") #{raw_saml}

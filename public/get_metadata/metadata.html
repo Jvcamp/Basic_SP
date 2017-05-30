@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.27/angular.min.js"></script>
+        <script>
+		var app = angular.module("getMetadataApp",[]);
+		
+		app.controller("metadataController", function($scope, $http){
+			$scope.metadata_url = "https://adfs16.fim.local/federationmetadata/2007-06/federationmetadata.xml";
+			$scope.view_data="false";
+			$scope.getMetadata = function(){
+					$scope.metadata_urltext=$scope.metadata_url;
+					$scope.view_data="true";
+					$http({
+						method: "GET",
+						headers: headers,
+						url: $scope.metadata_url
+					})
+					.then(function(response){
+						//success
+						$scope.metadata_text = response.data
+					}, function(response){
+						//failure
+						$scope.metadata_text = response.data;
+						alert(response);
+					});
+				}
+			});
+			
+		</script>
+		
+<body ng-app="getMetadataApp" ng-controller="metadataController">
+	<div>
+		<p> Specify the Metadata url: </p>
+		<input ng-model="metadata_url">
+		</br>
+	</div>
+	<button ng-click="getMetadata()">Get Metadata</button>
+	<a href="https://adfs16.fim.local/federationmetadata/2007-06/federationmetadata">adfs</a>
+	<p ng-bind="xml"></p>
+	<div ng-show="view_data">
+	<p>Gathered metadata from URL:</p>
+	<p ng-bind="metadata_urltext"></p>
+	<p>Metadata:</p>
+	<p ng-bind="metadata_text"></p>
+	
+	</div>
+</body>
+</html>

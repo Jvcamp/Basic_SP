@@ -1,0 +1,3 @@
+node_modules/
+certificates/*
+!certificates/place_certificates_here.txt
