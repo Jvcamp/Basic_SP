@@ -170,7 +170,7 @@
 	  sp.post_assert(idp, options, function(err, saml_response) {
 		if (err != null){
 			console.log(err);
-			return res.sendStatus(500);			
+			return res.send(err);			
 		}
 		// Save name_id and session_index for logout 
 		// Note:  In practice these should be saved in the user session, not globally. 
