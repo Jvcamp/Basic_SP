@@ -12,6 +12,7 @@
 	var base64 = require('base-64');					// decode saml tokens for RAW_SAML
 	
 	
+	
 	// SSL Configuration
 	// --------------------------------------------------------------------------------------------------------------------------  Specify certificates here
 	var ssloptions = {
@@ -38,7 +39,6 @@
 		honorCipherOrder: true
 	};
 	
-	
 	// Service provider
 	// --------------------------------------------------------------------------------------------------------------------------  Specify SP options here
 	var sp_options = {
@@ -59,7 +59,11 @@
 
 	  // Generate XML metadata for IDP to access. (Allow your app in firewall)
 	  var spmetadata = sp.create_metadata();
-	
+	  fs.writeFile( __dirname+'/public/jorenSP_metadata.xml', spmetadata, function (err){
+	  	if (err) throw err;
+	  	console.log('jorenSP_metadata.xml saved');
+	  }); 
+		
 	
 	// IdentityProvider
 	// --------------------------------------------------------------------------------------------------------------------------  Specify IDP options here
@@ -105,8 +109,8 @@
 	
 	// Endpoint to retrieve metadata 
 	app.get("/metadata.xml", function(req, res) {
-	  res.type('application/xml');
-	  res.send(spmetadata);
+	  var file = __dirname + '/public/jorenSP_metadata.xml';
+	  res.download(file);
 	});
 
 	// Home endpoint
@@ -126,6 +130,7 @@
 			return res.sendStatus(500);
 			console.log(err);
 		}
+		console.log("Redirecting to IDP ("+login_url+")");
 		res.redirect(login_url);
 	  });
 	});
@@ -153,7 +158,7 @@
 			return res.send(err);			
 		}
 		// Save name_id and session_index for logout 
-		// Note:  In practice these should be saved in the user session, not globally. 
+		// Note:  In practice these should be saved in the user session (cookie), not globally. 
 		global.name_id = saml_response.user.name_id;
 		global.session_index = saml_response.user.session_index;
 		raw_saml = base64.decode(req.body.SAMLResponse)
@@ -193,7 +198,8 @@
 			  return res.send(500);
 		  }
 		  res.redirect(logout_url);
-	  });
+		  console.log("logout url:     "+logout_url);
+	  });  
 	});
 
 		
