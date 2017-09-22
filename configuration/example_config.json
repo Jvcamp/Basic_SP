@@ -1,0 +1,29 @@
+{
+	"_comment":"SP Parameters",
+	"SP_entityID":"https://sp.jorenhost.net/jorenSPidentifier",
+	"SP_force_authn":"false",
+	"SP_nameIdFormat":"urn:oasis:names:tc:SAML:2.0:nameid-format:transient",
+	"SP_allow_unencrypted_assertion":"true",
+	"SP_sign_get_request":"false",
+		
+		"_comment":"SP Certificates",
+		"SP_certificatePublicKeyFile":"sp.crt",
+		"SP_certificatePrivateRsaKeyFile": "sp.key",
+		
+		"_comment":"Endpoints",
+		"SP_authn_assert_endpoint":"https://sp.jorenhost.net/assert",
+		"SP_logout_assert_endpoint":"https://sp.jorenhost.net/assertlogout",
+	
+	
+	
+	
+	
+	
+	"_comment":"IDP parameters",
+	"IDP_login_url":"https://adfs.lab/adfs/ls/trust",
+	"IDP_logout_url":"https://adfs.lab/adfs/ls/trust",
+		
+		"_comment":"IDPP Certificates",
+		"IDP_signing_cert":"jorenlab_sign.cer",
+		"IDP_encryption_cert": "jorenlab_enc.cer",
+}

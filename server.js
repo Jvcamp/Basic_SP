@@ -11,13 +11,20 @@
 	var jade = require('jade');							// EZ visualization
 	var base64 = require('base-64');					// decode saml tokens for RAW_SAML
 	
-	
-	
+	var config_filename = "fimlab.json"
+	try{
+		var Configuration = JSON.parse(fs.readFileSync( __dirname+'/configuration/'+config_filename, 'utf8'));
+	}catch (e){
+		console.log("Problem loading configuration file '"+config_filename+"'");
+		process.exit(1);
+	}
+	console.log("Loaded configuration file "+config_filename);
+
 	// SSL Configuration
 	// --------------------------------------------------------------------------------------------------------------------------  Specify certificates here
 	var ssloptions = {
-		key:  fs.readFileSync('certificates\\SSL\\commkey.key'),	// this needs to be unencrypted private key (rsa key)
-		cert: fs.readFileSync('certificates\\SSL\\commcert.crt'),
+		key:  fs.readFileSync('certificates/SSL/commkey.key'),	// this needs to be unencrypted private key (rsa key)
+		cert: fs.readFileSync('certificates/SSL/commcert.crt'),
 		ciphers: [
 			"ECDHE-RSA-AES256-SHA384",
 			"DHE-RSA-AES256-SHA384",
@@ -42,16 +49,16 @@
 	// Service provider
 	// --------------------------------------------------------------------------------------------------------------------------  Specify SP options here
 	var sp_options = {
-		entity_id: "https://sp.jorenhost.net/jorenSPidentifier",
-		private_key: fs.readFileSync("certificates\\localSP\\sp.key").toString(), // this needs to be unencrypted private key (rsa key)
-		certificate: fs.readFileSync("certificates\\localSP\\sp.crt").toString(),
-		assert_endpoint: "https://sp.jorenhost.net/assert",
-		logout_endpoint: "https://sp.jorenhost.net/assertlogout",
-		force_authn: false,
+		entity_id: Configuration.SP_entityID,
+		private_key: fs.readFileSync(__dirname+"/certificates/localSP/"+Configuration.SP_certificatePrivateRsaKeyFile).toString(),
+		certificate: fs.readFileSync(__dirname+"/certificates/localSP/"+Configuration.SP_certificatePublicKeyFile).toString(),
+		assert_endpoint: Configuration.SP_authn_assert_endpoint,
+		logout_endpoint: Configuration.SP_logout_assert_endpoint,
+		force_authn: Configuration.force_authn,
 		auth_context: { comparison: "exact", class_refs: ["urn:oasis:names:tc:SAML:1.0:am:password"] },
-		nameid_format: "urn:oasis:names:tc:SAML:2.0:nameid-format:transient",
-		sign_get_request: false,
-		allow_unencrypted_assertion: true
+		nameid_format: Configuration.SP_nameIdFormat,
+		sign_get_request: Configuration.SP_sign_get_request,
+		allow_unencrypted_assertion: Configuration.SP_allow_unencrypted_assertion
 	}	
  
 	  // Create ServiceProvider
@@ -59,21 +66,21 @@
 
 	  // Generate XML metadata for IDP to access. (Allow your app in firewall)
 	  var spmetadata = sp.create_metadata();
-	  fs.writeFile( __dirname+'/public/jorenSP_metadata.xml', spmetadata, function (err){
+	  fs.writeFile( __dirname+'/public/SP_metadata.xml', spmetadata, function (err){
 	  	if (err) throw err;
-	  	console.log('jorenSP_metadata.xml saved');
+	  	console.log('SP_metadata.xml saved');
 	  }); 
 		
 	
 	// IdentityProvider
 	// --------------------------------------------------------------------------------------------------------------------------  Specify IDP options here
 	var idp_options = {
-	  sso_login_url: "https://adfs16.fim.local/adfs/ls/trust",
-	  sso_logout_url: "https://adfs16.fim.local/adfs/ls/trust",
+	  sso_login_url: Configuration.IDP_login_url,
+	  sso_logout_url: Configuration.IDP_logout_url,
 	  // these certificates need to be of the '.cer' or '.pem' type
 	  certificates: [
-	  	fs.readFileSync("certificates\\remoteIDP\\jorenlab_enc.cer").toString(),		//encryption
-		fs.readFileSync("certificates\\remoteIDP\\jorenlab_sign.cer").toString()		//signing
+	  	fs.readFileSync("certificates/remoteIDP/"+Configuration.IDP_encryption_cert).toString(),		//encryption
+		fs.readFileSync("certificates/remoteIDP/"+Configuration.IDP_signing_cert).toString()			//signing
 	  ]
 	};
 	
@@ -95,7 +102,7 @@
 	// APP configuration (probably nothing to change here)
 	
     app.set('view engine','jade')									// specify jade as view engine
-	app.set('views', __dirname+'/views')										// views are in root dir
+	app.set('views', __dirname+'/views')							// views are in root dir
 	app.use(express.static(__dirname + '/public'));                 // set the static files location /public/img will be /img for users
     app.use(morgan('dev'));                                         // log every request to the console
     app.use(bodyParser.urlencoded({'extended':'true'}));            // parse application/x-www-form-urlencoded
@@ -109,7 +116,7 @@
 	
 	// Endpoint to retrieve metadata 
 	app.get("/metadata.xml", function(req, res) {
-	  var file = __dirname + '/public/jorenSP_metadata.xml';
+	  var file = __dirname + '/public/SP_metadata.xml';
 	  res.download(file);
 	});
 
