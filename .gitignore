@@ -1,5 +1,6 @@
 node_modules/
 certificates/*
 !certificates/place_certificates_here.txt
+/public/SP_metadata.xml
 configuration/*
 !configuration/example_config.json
