@@ -16,6 +16,7 @@
 		var Configuration = JSON.parse(fs.readFileSync( __dirname+'/configuration/'+config_filename, 'utf8'));
 	}catch (e){
 		console.log("Problem loading configuration file '"+config_filename+"'");
+		console.log(e)
 		process.exit(1);
 	}
 	console.log("Loaded configuration file "+config_filename);
@@ -23,8 +24,8 @@
 	// SSL Configuration
 	// --------------------------------------------------------------------------------------------------------------------------  Specify certificates here
 	var ssloptions = {
-		key:  fs.readFileSync('certificates/SSL/commkey.key'),	// this needs to be unencrypted private key (rsa key)
-		cert: fs.readFileSync('certificates/SSL/commcert.crt'),
+		key:  fs.readFileSync('certificates/SSL/'+Configuration.SSL_RSAkey),	// this needs to be unencrypted private key (rsa key)
+		cert: fs.readFileSync('certificates/SSL/'+Configuration.SSL_PublicKey),
 		ciphers: [
 			"ECDHE-RSA-AES256-SHA384",
 			"DHE-RSA-AES256-SHA384",
@@ -212,5 +213,5 @@
 		
 	
 	//start app with 'node server.js'
-	httpsServer = https.createServer(ssloptions,app).listen(443);
-    console.log("App listening on port 443");
+	httpsServer = https.createServer(ssloptions,app).listen(Configuration.App_port);
+    console.log("App listening on port "+Configuration.App_port);

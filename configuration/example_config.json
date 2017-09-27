@@ -1,4 +1,5 @@
 {
+	"_comment":"###############################################################################################   SP   ##",
 	"_comment":"SP Parameters",
 	"SP_entityID":"https://sp.jorenhost.net/jorenSPidentifier",
 	"SP_force_authn":"false",
@@ -16,9 +17,7 @@
 	
 	
 	
-	
-	
-	
+	"_comment":"##############################################################################################   IDP   ##",
 	"_comment":"IDP parameters",
 	"IDP_login_url":"https://adfs.lab/adfs/ls/trust",
 	"IDP_logout_url":"https://adfs.lab/adfs/ls/trust",
@@ -26,4 +25,14 @@
 		"_comment":"IDPP Certificates",
 		"IDP_signing_cert":"jorenlab_sign.cer",
 		"IDP_encryption_cert": "jorenlab_enc.cer",
+	
+	
+	
+	"_comment":"##############################################################################################   APP   ##",
+	"_comment":"Application parameters",
+	"App_port":"443",
+	
+		"_comment":"SSL Certificates",
+		"SSL_RSAkey":"commkey.key",
+		"SSL_PublicKey":"commcert.crt"
 }
