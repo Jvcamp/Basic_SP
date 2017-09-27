@@ -1,0 +1,1 @@
+Place the SSL certificates to be used by simpleSP here.
