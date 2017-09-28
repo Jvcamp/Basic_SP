@@ -43,5 +43,6 @@ html(lang="en")
 			#rawsaml
 				h3 Raw SAML
 				button(id='toggle_raw_saml' onclick='toggle()') Expand
+				button(id='download_raw_saml' onclick='window.open("https://sp.jorenhost.net/authnresponse.xml")') Download
 				br
-				textarea(id="raw_saml" rows="40" cols="200" style="display:none") #{raw_saml}
+				textarea(id="raw_saml" rows="40" cols="200" readonly="readonly" style="display:none") #{raw_saml}

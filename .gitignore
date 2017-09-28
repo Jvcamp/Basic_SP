@@ -6,5 +6,7 @@ certificates/SSL/*
 !certificates/localSP/place_SP_certificates_here.txt
 !certificates/remoteIDP/place_IDP_certificates_here.txt
 /public/SP_metadata.xml
+/public/AuthnResponse.xml
+/public/LogoutResponse.xml
 configuration/*
 !configuration/example_config.json

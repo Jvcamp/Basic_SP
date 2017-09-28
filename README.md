@@ -11,7 +11,7 @@
 1. Aquire the required certificates (SSL,IDP,SP) and place them in the certificates folder
 1. Update DNS entries (IDP and localhost)
 1. Change configuration inside _<root>/configuration/<config_file>.json_
-1. Update the _config_filename_ parameter at the top of the _server.js_ file to point to the correct configuration file. (ex: _example_config.json_)
+1. Update the _config_filename_ parameter at the top of the _server.js_ file to point to the correct configuration file. (ex: **var config_filename = _example-config.json_**")
 1. Go to root folder, open powershell and type **node server.js**
 
 ## TODO
@@ -19,3 +19,4 @@
 - [x] Port settings to configuration file.
 - [ ] Branch SAML2-JS module and commit changes.
 - [ ] Include basic SSL and SP certificates.
+- [ ] Research possibility for multiple IDP's.

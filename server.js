@@ -11,7 +11,7 @@
 	var jade = require('jade');							// EZ visualization
 	var base64 = require('base-64');					// decode saml tokens for RAW_SAML
 	
-	var config_filename = "fimlab.json"
+	var config_filename = "wso2belga.json"
 	try{
 		var Configuration = JSON.parse(fs.readFileSync( __dirname+'/configuration/'+config_filename, 'utf8'));
 	}catch (e){
@@ -120,6 +120,16 @@
 	  var file = __dirname + '/public/SP_metadata.xml';
 	  res.download(file);
 	});
+	
+	app.get("/logoutresponse.xml", function(req, res) {
+	  var file = __dirname + '/public/LogoutResponse.xml';
+	  res.download(file);
+	});
+	
+	app.get("/authnresponse.xml", function(req, res) {
+	  var file = __dirname + '/public/AuthnResponse.xml';
+	  res.download(file);
+	});
 
 	// Home endpoint
 	app.get("/home", function(req, res) {
@@ -145,16 +155,20 @@
 	 	 
 	// Assert endpoint for when logout completes 
 	app.post("/assertlogout", function(req, res) {
-	  var options = {request_body: req.body};
-	  sp.post_assert(idp, options, function(err, saml_response) {
-		if (err != null){
-		  console.log(err);
-		  // catch 'SAML Response was not success!'
-		  return res.send(err);
-		}
-		raw_saml = base64.decode(req.body.SAMLResponse)
-		res.render('logout', {"state":saml_response.state});
-	  });
+		var options = {request_body: req.body};
+		sp.post_assert(idp, options, function(err, saml_response) {
+			if (err != null){
+			console.log(err);
+			// catch 'SAML Response was not success!'
+			return res.send(err);
+			}
+			raw_saml = base64.decode(req.body.SAMLResponse)
+			fs.writeFile( __dirname+'/public/LogoutResponse.xml', raw_saml, function (err){
+				if (err) throw err;
+					console.log('LogoutResponse.xml saved');
+			}); 
+			res.render('logout', {"state":saml_response.state});
+		});
 	});
 
 	// Assert endpoint for when login completes 
@@ -170,10 +184,14 @@
 		global.name_id = saml_response.user.name_id;
 		global.session_index = saml_response.user.session_index;
 		raw_saml = base64.decode(req.body.SAMLResponse)
+		fs.writeFile( __dirname+'/public/AuthnResponse.xml', raw_saml, function (err){
+			if (err) throw err;
+			console.log('AuthnResponse.xml saved');
+		}); 
 		console.log("----- Assert -----");
 		console.log("name id:        "+global.name_id);
 		console.log("session index:  "+global.session_index);
-		var attributes = '{"attributes":{'
+		var attributes = '{"attributes":{ ' //LEAVE THE TRAILING SPACE
 		var array = saml_response.user.attributes
 		for (var key in array){
 			var attrvalue = array[key].toString()//.replace("\\", "%");
@@ -184,7 +202,7 @@
 			attributes += attrvalue.replace("\\", "|");
 			attributes += '",';
 		}
-		attributes =  attributes.slice(0,-1); //remove last ','
+		attributes =  attributes.slice(0,-1); //remove last ',' THIS IS WHY WE LEAVE THE TRAILING SPACE
 		attributes += '}}';
 		var json = JSON.parse(attributes)
 		res.render('assert',json)
