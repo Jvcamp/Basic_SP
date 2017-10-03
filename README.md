@@ -17,6 +17,9 @@
 ## TODO
 
 - [x] Port settings to configuration file.
+- [x] Include Port support for URL's
+- [x] Move hostname to app parameters.
+- [ ] Include signing algorithm and logout response url in metadata
 - [ ] Branch SAML2-JS module and commit changes.
 - [ ] Include basic SSL and SP certificates.
 - [ ] Research possibility for multiple IDP's.

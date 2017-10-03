@@ -10,10 +10,6 @@
 		"_comment":"SP Certificates",
 		"SP_certificatePublicKeyFile":"sp.crt",
 		"SP_certificatePrivateRsaKeyFile": "sp.key",
-		
-		"_comment":"Endpoints",
-		"SP_authn_assert_endpoint":"https://sp.jorenhost.net/assert",
-		"SP_logout_assert_endpoint":"https://sp.jorenhost.net/assertlogout",
 	
 	
 	
@@ -30,7 +26,8 @@
 	
 	"_comment":"##############################################################################################   APP   ##",
 	"_comment":"Application parameters",
-	"App_port":"443",
+	"App_URL":"sp.jorenhost.net",
+	"App_Port":"443",
 	
 		"_comment":"SSL Certificates",
 		"SSL_RSAkey":"commkey.key",

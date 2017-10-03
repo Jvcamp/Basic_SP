@@ -20,7 +20,7 @@
 	 * ***************************************************************************    CONFIGURATION    ***************************************************************************
 	 * ===========================================================================================================================================================================
 	 */
-	var config_filename = "wso2belga.json"
+	var config_filename = "wso2lab.json"
 	try{
 		var Configuration = JSON.parse(fs.readFileSync( __dirname+'/configuration/'+config_filename, 'utf8'));
 	}catch (e){
@@ -72,8 +72,8 @@
 		entity_id: Configuration.SP_entityID,
 		private_key: fs.readFileSync(__dirname+"/certificates/localSP/"+Configuration.SP_certificatePrivateRsaKeyFile).toString(),
 		certificate: fs.readFileSync(__dirname+"/certificates/localSP/"+Configuration.SP_certificatePublicKeyFile).toString(),
-		assert_endpoint: Configuration.SP_authn_assert_endpoint,
-		logout_endpoint: Configuration.SP_logout_assert_endpoint,
+		assert_endpoint: "https://"+Configuration.App_URL+":"+Configuration.App_Port+"/assert",
+		logout_endpoint: "https://"+Configuration.App_URL+":"+Configuration.App_Port+"/assertlogout",
 		force_authn: Configuration.force_authn,
 		auth_context: { comparison: "exact", class_refs: ["urn:oasis:names:tc:SAML:1.0:am:password"] },
 		nameid_format: Configuration.SP_nameIdFormat,
@@ -113,6 +113,10 @@
 	
 	//"Create" IdentityProvider
 	var idp = new saml2.IdentityProvider(idp_options);
+	
+	//Generate app_baseUrl for linking to the correct location.
+	var app_baseUrl = "https://"+Configuration.App_URL+":"+Configuration.App_Port
+	
 
 	/*
 	 * ===========================================================================================================================================================================
@@ -128,8 +132,8 @@
     app.use(bodyParser.json());                                     // parse application/json
     app.use(bodyParser.json({ type: 'application/vnd.api+json' })); // parse application/vnd.api+json as json
     //app.use(methodOverride());//remove me
-	
 
+	
 	/*
 	 * ===========================================================================================================================================================================
 	 * *****************************************************************************    ENDPOINTS    *****************************************************************************
@@ -157,13 +161,9 @@
 	// Home endpoint
 	app.get("/home", function(req, res) {
 		var idp_login_url = idp_options.sso_login_url;
-		var attributes = '{"login_url":"';
-		attributes += idp_login_url;
-		attributes += '"}';
-		var json = JSON.parse(attributes);
-		res.render('home',json);
+		res.render('home',{"app_baseUrl": app_baseUrl});
 	});
-	
+
 	// Starting point for login 
 	app.get("/login", function(req, res) {
 	  sp.create_login_request_url(idp, {}, function(err, login_url, request_id) {
@@ -171,7 +171,7 @@
 			return res.sendStatus(500);
 			console.log(err);
 		}
-		console.log("Redirecting to IDP ("+login_url+")");
+		console.log("Redirecting to IDP ("+login_url.slice(0,40)+")");
 		res.redirect(login_url);
 	  });
 	});
@@ -190,7 +190,7 @@
 				if (err) throw err;
 					console.log('LogoutResponse.xml saved');
 			}); 
-			res.render('logout', {"state":saml_response.state});
+			res.render('logout', {"state":saml_response.state,"app_baseUrl": app_baseUrl});
 		});
 	});
 
@@ -211,7 +211,7 @@
 			if (err) throw err;
 			console.log('AuthnResponse.xml saved');
 		}); 
-		console.log("----- Assert -----");
+		console.log("---------- Assert ----------");
 		console.log("name id:        "+global.name_id);
 		console.log("session index:  "+global.session_index);
 		var attributes = '{"attributes":{ ' //LEAVE THE TRAILING SPACE
@@ -228,13 +228,15 @@
 		attributes =  attributes.slice(0,-1); //remove last ',' THIS IS WHY WE LEAVE THE TRAILING SPACE
 		attributes += '}}';
 		var json = JSON.parse(attributes)
+		json["app_baseUrl"] = app_baseUrl;
 		res.render('assert',json)
+		console.log("----------------------------");
 	  });
 	}); 
 	 
 	// Starting point for logout 
 	app.get("/logout", function(req, res) {
-		console.log("----- Logout -----");
+		console.log("---------- Logout ----------");
 		console.log("name id:        "+global.name_id);
 		console.log("session index:  "+global.session_index);
 	  var options = {
@@ -248,6 +250,7 @@
 		  }
 		  res.redirect(logout_url);
 		  console.log("logout url:     "+logout_url);
+		  console.log("----------------------------");
 	  });  
 	});
 
@@ -259,5 +262,5 @@
 	 * ===========================================================================================================================================================================
 	 */
 	//start app with 'node server.js'
-	httpsServer = https.createServer(ssloptions,app).listen(Configuration.App_port);
-    console.log("App listening on port "+Configuration.App_port);
+	httpsServer = https.createServer(ssloptions,app).listen(Configuration.App_Port);
+    console.log("App listening on port "+Configuration.App_Port);
