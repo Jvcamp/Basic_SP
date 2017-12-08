@@ -2,7 +2,7 @@
 
 ## PREREQUISITES
 * **Required:** npm (https://www.npmjs.com/) - very easy to install ( next, next, finish)
-* **For reference:** Main-module is Node js (saml2-js) https://www.npmjs.com/package/saml2-js
+* **For reference:** Main-module is saml2-js https://www.npmjs.com/package/saml2-js
 
 
 ## GETTING STARTED

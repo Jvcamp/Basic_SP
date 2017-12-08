@@ -8,7 +8,6 @@
 	var app = express();								// create our app w/ express
     var morgan = require('morgan');            			// log requests to the console (express4)
     var bodyParser = require('body-parser');    		// pull information from HTML POST (express4)
-    //var methodOverride = require('method-override'); 	// simulate DELETE and PUT (express4) //remove me
 	var fs = require('fs');								// required for reading from files
 	var https = require('https');						// required for https service provider
 	var jade = require('jade');							// EZ visualization
@@ -20,7 +19,10 @@
 	 * ***************************************************************************    CONFIGURATION    ***************************************************************************
 	 * ===========================================================================================================================================================================
 	 */
-	var config_filename = "wso2lab.json"
+	 
+	var config_filename = "wso2belga.json"
+	//var config_filename = "fimlab.json"
+	
 	try{
 		var Configuration = JSON.parse(fs.readFileSync( __dirname+'/configuration/'+config_filename, 'utf8'));
 	}catch (e){
@@ -131,7 +133,6 @@
     app.use(bodyParser.urlencoded({'extended':'true'}));            // parse application/x-www-form-urlencoded
     app.use(bodyParser.json());                                     // parse application/json
     app.use(bodyParser.json({ type: 'application/vnd.api+json' })); // parse application/vnd.api+json as json
-    //app.use(methodOverride());//remove me
 
 	
 	/*
