@@ -11,7 +11,10 @@
 		"SP_certificatePublicKeyFile":"sp.crt",
 		"SP_certificatePrivateRsaKeyFile": "sp.key",
 	
-	
+		"_comment":"SP Authentication context",
+		"_comment":"The following values are optional and should be removed if not required.",
+		"SP_authNcontext_comparison":"minimum",
+		"SP_authNcontext_classes":["urn:oasis:names:tc:SAML:1.0:am:password","context:urn:be:fedict:iam:fas:citizen:Level500"],
 	
 	"_comment":"##############################################################################################   IDP   ##",
 	"_comment":"IDP parameters",

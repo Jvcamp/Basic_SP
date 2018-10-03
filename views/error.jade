@@ -1,0 +1,25 @@
+doctype html
+html(lang="en")
+	head
+		title=Assert
+		link(href='/css/standard.css',rel='stylesheet')
+		script(src='/js/expand_rawsaml.js')
+	body
+		#navbar
+			ul.nav
+				li.nav
+					a.button(href=app_baseUrl+"/home") Home
+					a.button(href=app_baseUrl+"/login") Login
+					a.button(href=app_baseUrl+"/logout") Logout
+					a.button(href=app_baseUrl+"/metadata.xml") SP metadata
+		#sitecontent
+			h2 ERROR
+			p #{error}
+			br
+			br
+			#rawsaml
+				h3 Raw SAML
+				button(id='toggle_raw_saml' onclick='toggle()') Expand
+				button(id='download_raw_saml' onclick='window.open("#{app_baseUrl}/authnresponse.xml")') Download
+				br
+				textarea(id="raw_saml" rows="40" cols="200" readonly="readonly" style="display:none") #{raw_saml}

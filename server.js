@@ -1,4 +1,4 @@
-	/*
+﻿	/*
 	 * ===========================================================================================================================================================================
 	 * ******************************************************************************    MODULES    ******************************************************************************
 	 * ===========================================================================================================================================================================
@@ -20,8 +20,8 @@
 	 * ===========================================================================================================================================================================
 	 */
 	 
-	var config_filename = "wso2belga.json"
-	//var config_filename = "fimlab.json"
+	var config_filename = "fimlocal16.json"
+	//"fimlocal16test.json"
 	
 	try{
 		var Configuration = JSON.parse(fs.readFileSync( __dirname+'/configuration/'+config_filename, 'utf8'));
@@ -31,7 +31,8 @@
 		process.exit(1);
 	}
 	console.log("Loaded configuration file "+config_filename);
-
+	// PS to change window title
+	//$host.ui.RawUI.WindowTitle = "name"
 	
 	
 	/*
@@ -70,6 +71,25 @@
 	 * **************************************************************************    SERVICE PROVIDER    *************************************************************************
 	 * ===========================================================================================================================================================================
 	 */
+	 
+	//Generate the authentication context element to be used in the SP options.
+	// we need the OR check here, because we can just omit the authentication context in that case, but if either one of the parameters is specified without the other, we need to include a default value for the other.
+	if(Configuration.SP_authNcontext_comparison || Configuration.SP_authNcontext_classes){
+		var authN_Context = {}
+		if(Configuration.SP_authNcontext_comparison){
+			authN_Context["comparison"] = Configuration.SP_authNcontext_comparison
+		}else{
+			authN_Context["comparison"] = "exact"
+		}
+		if(Configuration.SP_authNcontext_classes){
+			authN_Context["class_refs"] = Configuration.SP_authNcontext_classes
+		}else{
+			//we need at least one authentication context class
+			authN_Context["class_refs"] = ["urn:oasis:names:tc:SAML:1.0:am:password"]
+		}
+	}
+	
+	//Generate the SP options.
 	var sp_options = {
 		entity_id: Configuration.SP_entityID,
 		private_key: fs.readFileSync(__dirname+"/certificates/localSP/"+Configuration.SP_certificatePrivateRsaKeyFile).toString(),
@@ -77,7 +97,7 @@
 		assert_endpoint: "https://"+Configuration.App_URL+":"+Configuration.App_Port+"/assert",
 		logout_endpoint: "https://"+Configuration.App_URL+":"+Configuration.App_Port+"/assertlogout",
 		force_authn: Configuration.force_authn,
-		auth_context: { comparison: "exact", class_refs: ["urn:oasis:names:tc:SAML:1.0:am:password"] },
+		auth_context: authN_Context,
 		nameid_format: Configuration.SP_nameIdFormat,
 		sign_get_request: Configuration.SP_sign_get_request,
 		allow_unencrypted_assertion: Configuration.SP_allow_unencrypted_assertion
@@ -106,11 +126,13 @@
 	var idp_options = {
 	  sso_login_url: Configuration.IDP_login_url,
 	  sso_logout_url: Configuration.IDP_logout_url,
+	  idp_initiated_signon_url: Configuration.IDP_initiated_signon_url,
 	  // these certificates need to be of the '.cer' or '.pem' type
 	  certificates: [
 	  	fs.readFileSync("certificates/remoteIDP/"+Configuration.IDP_encryption_cert).toString(),		//encryption
 		fs.readFileSync("certificates/remoteIDP/"+Configuration.IDP_signing_cert).toString()			//signing
-	  ]
+	  ],
+	  force_authn: true
 	};
 	
 	//"Create" IdentityProvider
@@ -167,7 +189,7 @@
 
 	// Starting point for login 
 	app.get("/login", function(req, res) {
-	  sp.create_login_request_url(idp, {}, function(err, login_url, request_id) {
+	  sp.create_login_request_url(idp,{}, function(err, login_url, request_id) {
 		if (err != null){
 			return res.sendStatus(500);
 			console.log(err);
@@ -176,38 +198,57 @@
 		res.redirect(login_url);
 	  });
 	});
+	
+	// Test point 
+	app.get("/test", function(req, res) {
+		
+		res.send("This is a test point");
+	});
 	 	 
 	// Assert endpoint for when logout completes 
 	app.post("/assertlogout", function(req, res) {
 		var options = {request_body: req.body};
 		sp.post_assert(idp, options, function(err, saml_response) {
+			raw_saml = base64.decode(req.body.SAMLResponse)
 			if (err != null){
 			console.log(err);
-			// catch 'SAML Response was not success!'
-			return res.send(err);
-			}
-			raw_saml = base64.decode(req.body.SAMLResponse)
+			var json = err
+			return res.render('error',{"app_baseUrl": app_baseUrl,"error":err,"raw_saml":raw_saml});			
+		}
 			fs.writeFile( __dirname+'/public/LogoutResponse.xml', raw_saml, function (err){
 				if (err) throw err;
 					console.log('LogoutResponse.xml saved');
 			}); 
-			res.render('logout', {"state":saml_response.state,"app_baseUrl": app_baseUrl});
+			res.render('logout', {"state":saml_response.state,"app_baseUrl": app_baseUrl,"IDP_init_signon":"test"});
 		});
 	});
+	//-----------------------------------------------------------------------------------------------------------------------------------
+	// Assert endpoint for when logout completes 
+	app.post("/oauth_callback.html", function(req, res) {
+		var options = {request_body: req.body};
+		fs.writeFile( __dirname+'/public/tmp.txt', options, function (err){
+				if (err) throw err;
+					console.log('tmp.txt saved');
+			}); 
+		res.send(options);
+	});
+	//-----------------------------------------------------------------------------------------------------------------------------------
 
 	// Assert endpoint for when login completes 
 	app.post("/assert", function(req, res) {
 	  var options = {request_body: req.body};
 	  sp.post_assert(idp, options, function(err, saml_response) {
+		raw_saml = base64.decode(req.body.SAMLResponse)
 		if (err != null){
 			console.log(err);
-			return res.send(err);			
+			var json = err
+			return res.render('error',{"app_baseUrl": app_baseUrl,"error":err,"raw_saml":raw_saml});			
 		}
 		// Save name_id and session_index for logout 
 		// Note:  In practice these should be saved in the user session (cookie), not globally. 
 		global.name_id = saml_response.user.name_id;
 		global.session_index = saml_response.user.session_index;
-		raw_saml = base64.decode(req.body.SAMLResponse)
+		
 		fs.writeFile( __dirname+'/public/AuthnResponse.xml', raw_saml, function (err){
 			if (err) throw err;
 			console.log('AuthnResponse.xml saved');
@@ -227,9 +268,11 @@
 			attributes += '",';
 		}
 		attributes =  attributes.slice(0,-1); //remove last ',' THIS IS WHY WE LEAVE THE TRAILING SPACE
-		attributes += '}}';
+		attributes += '},"session_index": "'+ global.session_index +'"}';
+		//ORIG: attributes += '}}';
 		var json = JSON.parse(attributes)
 		json["app_baseUrl"] = app_baseUrl;
+		res.set("session_index",global.session_index)
 		res.render('assert',json)
 		console.log("----------------------------");
 	  });
