@@ -12,6 +12,7 @@
 	var https = require('https');						// required for https service provider
 	var jade = require('jade');							// EZ visualization
 	var base64 = require('base-64');					// decode saml tokens for RAW_SAML
+	var format = require('xml-formatter');				// required to properly format the 'raw_saml' xml strings.
 	
 	
 	/*
@@ -33,7 +34,7 @@
 	console.log("Loaded configuration file "+config_filename);
 	// PS to change window title
 	//$host.ui.RawUI.WindowTitle = "name"
-	
+	var xml_format_options = {indentation: '  ', stripComments: true};
 	
 	/*
 	 * ===========================================================================================================================================================================
@@ -209,7 +210,7 @@
 	app.post("/assertlogout", function(req, res) {
 		var options = {request_body: req.body};
 		sp.post_assert(idp, options, function(err, saml_response) {
-			raw_saml = base64.decode(req.body.SAMLResponse)
+			raw_saml = format(base64.decode(req.body.SAMLResponse),xml_format_options);
 			if (err != null){
 			console.log(err);
 			var json = err
@@ -222,6 +223,7 @@
 			res.render('logout', {"state":saml_response.state,"app_baseUrl": app_baseUrl,"IDP_init_signon":"test"});
 		});
 	});
+	
 	//-----------------------------------------------------------------------------------------------------------------------------------
 	// Assert endpoint for when logout completes 
 	app.post("/oauth_callback.html", function(req, res) {
@@ -238,7 +240,7 @@
 	app.post("/assert", function(req, res) {
 	  var options = {request_body: req.body};
 	  sp.post_assert(idp, options, function(err, saml_response) {
-		raw_saml = base64.decode(req.body.SAMLResponse)
+		raw_saml = format(base64.decode(req.body.SAMLResponse),xml_format_options);
 		if (err != null){
 			console.log(err);
 			var json = err
