@@ -3,7 +3,7 @@ html(lang="en")
 	head
 		title=Assert
 		link(href='/css/standard.css',rel='stylesheet')
-		script(src='/js/assert_javascript.js')
+		script(src='/js/utils.js')
 	body
 		#navbar
 			ul.nav
@@ -11,6 +11,8 @@ html(lang="en")
 					a.button(href=app_baseUrl+"/home") Home
 					a.button(href=app_baseUrl+"/login") Login
 					a.button(href=app_baseUrl+"/logout") Logout
+					a.button(onclick="authorize()") Authorize
+					a.button(onclick="getToken()") Get Token
 					a.button(href=app_baseUrl+"/metadata.xml") SP metadata
 		#sitecontent
 			h2 Logout Page

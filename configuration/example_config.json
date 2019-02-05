@@ -25,7 +25,17 @@
 		"IDP_signing_cert":"jorenlab_sign.cer",
 		"IDP_encryption_cert": "jorenlab_enc.cer",
 	
-	
+	"_comment":"##############################################################################################   OAUTH   ##",
+		"client_id": "",
+		"client_secret": "",
+		"authz_endpoint": "https://adfs16.fim.local/adfs/oauth2/authorize",
+		"token_endpoint": "https://adfs16.fim.local/adfs/oauth2/token",
+		"userinfo_endpoint": "https://adfs16.fim.local/adfs/userinfo",
+		"introspect_endpoint": "https://adfs16.fim.local/adfs/oauth2/introspect",
+		"revoke_endpoint": "https://adfs16.fim.local/adfs/oauth2/revoke",
+		"callback_url": "https://sp.jorenhost.net/oauth_callback.html",
+		"scope": "openid allatclaims",
+		"response_type":"id_token",
 	
 	"_comment":"##############################################################################################   APP   ##",
 	"_comment":"Application parameters",

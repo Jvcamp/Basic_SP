@@ -13,7 +13,7 @@
 	var jade = require('jade');							// EZ visualization
 	var base64 = require('base-64');					// decode saml tokens for RAW_SAML
 	var format = require('xml-formatter');				// required to properly format the 'raw_saml' xml strings.
-	
+	var request = require('request')
 	
 	/*
 	 * ===========================================================================================================================================================================
@@ -21,7 +21,7 @@
 	 * ===========================================================================================================================================================================
 	 */
 	 
-	var config_filename = "fimlocal16.json"
+	var config_filename = "vmswtest.json"
 	//"fimlocal16test.json"
 	
 	try{
@@ -113,8 +113,13 @@
 	  	if (err) throw err;
 	  	console.log('SP_metadata.xml saved');
 	  }); 
-		
 	
+/*
+	 * ===========================================================================================================================================================================
+	 * **************************************************************************    OAUTH    *************************************************************************
+	 * ===========================================================================================================================================================================
+	 */	
+	var g_basicauth = base64.encode(Configuration.client_id+':'+Configuration.client_secret);
 	
 	/*
 	 * ===========================================================================================================================================================================
@@ -157,7 +162,33 @@
     app.use(bodyParser.json());                                     // parse application/json
     app.use(bodyParser.json({ type: 'application/vnd.api+json' })); // parse application/vnd.api+json as json
 
+	/*
+	 * ===========================================================================================================================================================================
+	 * ****************************************************************************    FUNCTIONS   ****************************************************************************
+	 * ===========================================================================================================================================================================
+	 */	
+	function parseParameters(url){
+		if(url.indexOf("?") !== -1){
+		callbackResponse = url.split("?")[1];
+		var responseParameters = (callbackResponse).split("&");
+		var parameterMap = [];
+		for(var i = 0; i < responseParameters.length; i++) {
+			parameterMap[decodeURI(responseParameters[i].split("=")[0])] = decodeURI(responseParameters[i].split("=")[1]);
+		}
+		return parameterMap;
+		}else{
+			return "";
+		}
+	}
 	
+	function prettyPrint(json){
+		try{
+		const object = JSON.parse(json)
+		console.dir(object, {depth: null, colors: true})
+		}catch(err){
+			console.log("Failed pretty print: "+json)
+		}
+	}
 	/*
 	 * ===========================================================================================================================================================================
 	 * *****************************************************************************    ENDPOINTS    *****************************************************************************
@@ -195,8 +226,12 @@
 			return res.sendStatus(500);
 			console.log(err);
 		}
-		console.log("Redirecting to IDP ("+login_url.slice(0,40)+")");
-		res.redirect(login_url);
+		console.log("Redirecting to IDP ("+login_url.slice(0,200)+"...)");
+		var additional_parameters =""
+		if(Configuration.additional_query_params != ""){
+			additional_parameters = Configuration.additional_query_params
+		}
+		res.redirect(login_url+additional_parameters);
 	  });
 	});
 	
@@ -225,17 +260,28 @@
 	});
 	
 	//-----------------------------------------------------------------------------------------------------------------------------------
-	// Assert endpoint for when logout completes 
-	app.post("/oauth_callback.html", function(req, res) {
-		var options = {request_body: req.body};
-		fs.writeFile( __dirname+'/public/tmp.txt', options, function (err){
+	app.get("/oauth_callback.html", function(req, res) {
+		var param = parseParameters(req.url);
+		prettyPrint(param)
+		console.log(param)
+		fs.writeFile( __dirname+'/public/oauth.txt', JSON.stringify(param), function (err){
 				if (err) throw err;
-					console.log('tmp.txt saved');
+					console.log('oauth.txt saved');
 			}); 
-		res.send(options);
+		res.render('oauth',param);
 	});
 	//-----------------------------------------------------------------------------------------------------------------------------------
 
+	app.get("/callback", function(req, res) {
+		var param = parseParameters(req.url);
+		console.log(param)
+		fs.writeFile( __dirname+'/public/oauth.txt', JSON.stringify(param), function (err){
+				if (err) throw err;
+					console.log('oauth.txt saved');
+			}); 
+		res.render('oauth',param);
+	});
+	
 	// Assert endpoint for when login completes 
 	app.post("/assert", function(req, res) {
 	  var options = {request_body: req.body};
@@ -300,6 +346,54 @@
 	  });  
 	});
 
+	// endpoint to request authorization code.
+    app.get("/authorize", function(req, res) {
+	// test with eve http://eveonline-third-party-documentation.readthedocs.io/en/latest/sso/authentication.html#implementing-the-sso
+	var param = parseParameters(req.url);
+	console.log(param)
+	let url = Configuration.authz_endpoint
+	+"?client_id="+Configuration.client_id
+	+"&response_type=code"
+	+"&redirect_uri="+Configuration.callback_url
+	+"&scope="+Configuration.scope
+	+"&state="+param.state  				//required for requesting openid tokens
+	;
+	console.log("redirecting to: "+url)
+	res.redirect(url);
+  });
+  
+    //endpoint to change authZ code to access and refresh token.
+    app.get("/gettoken", function(req, res) {
+		let param = parseParameters(req.url)
+		if(param.code != undefined){
+			let config = {
+				//host: Configuration.host,
+				url: Configuration.token_endpoint,
+				rejectUnauthorized: false,
+				method:"POST",
+				headers: {
+						  'content-type': 'application/x-www-form-urlencoded'
+						  //'authorization': "Basic "+g_basicauth
+				},
+				form: { 
+					"code": param.code,
+					"grant_type":"authorization_code",
+					"client_id":Configuration.client_id,
+					"scope":Configuration.scope,
+					"redirect_uri":Configuration.callback_url
+				}									
+			};
+			request.post(config,function(error,response,body) {
+				if(error){
+					console.log("ERROR: "+error)
+				}
+				prettyPrint(body)
+				//console.log("token_response",body)
+				res.render('assertoauth',{"body":body});
+			});
+		}
+		
+  });
 	
 	
 	/*

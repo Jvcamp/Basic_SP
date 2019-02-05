@@ -1,9 +1,10 @@
 doctype html
 html(lang="en")
 	head
-		title=Assert
+		title=Oauth
 		link(href='/css/standard.css',rel='stylesheet')
 		script(src='/js/utils.js')
+		
 	body
 		#navbar
 			ul.nav
@@ -15,5 +16,14 @@ html(lang="en")
 					a.button(onclick="getToken()") Get Token
 					a.button(href=app_baseUrl+"/metadata.xml") SP metadata
 		#sitecontent
-			h2 Simple SP home page
-			p.smalltext This page was created as a simple service provider for testing ADFS idp setups
+			h2 Oauth Assertion data page
+			h3 Attributes
+			p #{body}
+			p #{body.error}
+			p #{body.access_token}
+			p =================
+			-for(var item in body){
+			tr
+				td #{item}
+				td #{body[item]}
+			-}

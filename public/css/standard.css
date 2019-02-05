@@ -37,16 +37,40 @@ th {
 
 
 /* --------------------------------------------------------------------------------- Navigation bar  */
+@media (min-width: 1000px) {
+	  /* CSS that should be displayed if width is equal to or more than 1000px goes here */
+	ul.nav{
+		list-style-type: none;
+		margin: 0;
+		padding: 0;
+		width: 7%;
+		height: 100%; /* Full height */
+		position: fixed; /* Make it stick, even on scroll */
+		overflow: auto; /* Enable scrolling if the sidenav has too much content */
+		border-right: 1px solid #FFFFFF;
+	}
+	#sitecontent{
+		margin-left:7%;
+		padding:1px 16px;
+	}
+}
+@media (max-width: 1000px) {
+  /* CSS that should be displayed if width is equal to or less than 1000px goes here */
+	ul.nav{
+		list-style-type: none;
+		margin: 0;
+    	padding: 0;
+    	width: 12%;
+    	height: 100%; /* Full height */
+   		position: fixed; /* Make it stick, even on scroll */
+    	overflow: auto; /* Enable scrolling if the sidenav has too much content */
+		border-right: 1px solid #FFFFFF;
+	}
 
-ul.nav{
-	list-style-type: none;
-	margin: 0;
-    padding: 0;
-    width: 5%;
-    height: 100%; /* Full height */
-    position: fixed; /* Make it stick, even on scroll */
-    overflow: auto; /* Enable scrolling if the sidenav has too much content */
-	border-right: 1px solid #FFFFFF;
+	#sitecontent{
+		margin-left:12%;
+		padding:1px 16px;
+	}
 }
 
 li.nav{
@@ -70,10 +94,7 @@ li.nav a:hover {
     color: white;
 }
 
-#sitecontent{
-	margin-left:5%;
-	padding:1px 16px;
-}
+
 
 .button {
   font: bold 12px Arial;
